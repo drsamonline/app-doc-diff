@@ -18,7 +18,7 @@ Compare two documents and see exactly what changed, **clause by clause**.
 |---|---|
 | **Built** | Clause splitting (paragraph, list marker, sentence); marker-stripped comparison so a renumber is not a change; exact-match pass so a moved or reflowed clause is not a change; reword detection with a similarity score; additions and removals; a "cannot tell" band; export of the delta as Markdown or JSON; file and byte gates; PWA shell that works from `file://`. |
 | **Not built** | A packaged Windows EXE / Android APK release — `app-builder` is not reachable from the environment this was built in (see below). Reading `.docx`, `.pdf`, `.odt`, `.rtf`, `.html` — refused by type instead. |
-| **Untested** | The DOM layer (`docs/play/app.js`): drag-and-drop, the export button and the service-worker registration are smoke-checked (every script the page loads resolves) but not asserted behaviourally. The engine behind them is covered by 92 assertions. |
+| **Untested** | Not covered by any test: dragging a file in from the OS, reading a file through the file picker, the service worker and the install prompt (jsdom implements neither). Everything else — the engine, the page wiring, the export, the empty and refused cases — is asserted. |
 
 ## The mechanic
 
@@ -41,7 +41,9 @@ B: 2. Payment shall be made within forty-five days of delivery.
 - **In a browser:** open `docs/play/index.html`. No build step, no server.
 - **As an app:** open the demo and use your browser's *Install* / *Add to Home Screen*.
 - **From disk:** double-click `docs/play/index.html` — it works from `file://` too.
-- **Tests:** `node tests/self-tests.js` and `node tests/page-smoke.js` (Node 20+; no dependencies).
+- **Tests:** `npm test` — or one at a time: `node tests/self-tests.js` (engine, 92 assertions),
+  `node tests/page-smoke.js` (the shape on disk), `node tests/ui-tests.js` (the page in a real DOM,
+  22 assertions, needs the dev-only `jsdom`). The app itself has no dependency.
 
 ## What it will not do
 
@@ -76,6 +78,7 @@ docs/play/sw.js            cache-only service worker
 docs/play/manifest.webmanifest, icon-192.png, icon-512.png
 tests/self-tests.js        92 assertions; every must-not is a named test
 tests/page-smoke.js        every local src/href resolves, nothing off-origin
+tests/ui-tests.js          22 assertions; the page wired to the engine, in jsdom
 PAGES.json                 which file is the landing page and which is the app
 ```
 
@@ -90,9 +93,10 @@ PAGES.json                 which file is the landing page and which is the app
 | let a document leave the device | `must_not_call_the_network` — no `fetch(`/XHR/WebSocket/beacon in any shipped file, CSP `connect-src 'none'` |
 | store the documents | `must_not_store_documents` — no localStorage/sessionStorage/IndexedDB in the page or the app |
 
-Mutation-tested three ways on 25/11/2026: removing the empty-document guard, letting an
+Mutation-tested four ways on 25/11/2026: removing the empty-document guard, letting an
 unreadable file through, and reporting a failed save as saved each turned the suite red
-(3, 12 and 3 failures respectively); restored, 92/92 pass.
+(3, 12 and 3 failures respectively), and not rendering the findings turned the UI suite red;
+restored, 92/92 + 22/22 pass.
 
 ## What is not built, and why
 

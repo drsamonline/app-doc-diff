@@ -19,7 +19,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates: dd/mm/y
   .html are refused by type with the reason, and nothing is compared.
 - Byte gate: NUL bytes and invalid UTF-8 are refused, not guessed at.
 - PWA shell: manifest, cache-only service worker, icons. Works from `file://`.
-- Tests: 1 suite, every must-not a named assertion, `node tests/self-tests.js`.
+- Tests: `tests/self-tests.js` (92 assertions, every must-not named) and `tests/ui-tests.js`
+  (22 assertions, the page in jsdom), plus `tests/page-smoke.js` for the shape on disk.
+- `npm test` runs all three.
 - CI: `.github/workflows/ci.yml` runs the suite and the page smoke check on every push.
 
 ### Not built

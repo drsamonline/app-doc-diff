@@ -27,6 +27,11 @@
   };
 
   var last = { result: null, when: "" };
+  /* Set while the invented example is on screen, so no status line ever presents it
+   * as the user's own document. */
+  var exampleOn = false;
+
+  function exampleSuffix() { return exampleOn ? " Both documents are the invented example." : ""; }
 
   /* ------------------------------------------------------------- helpers */
 
@@ -91,7 +96,7 @@
     if (!result.findings.length) {
       els.empty.hidden = false;
       els.empty.textContent = "No clause changed in meaning. A reflow, a renumber or a moved clause is not a change.";
-      setStatus("ok", "No clause changed in meaning \u2014 " + result.counts.unchanged + " of " + result.aCount + " clauses are unchanged.");
+      setStatus("ok", "No clause changed in meaning \u2014 " + result.counts.unchanged + " of " + result.aCount + " clauses are unchanged." + exampleSuffix());
       return;
     }
 
@@ -102,7 +107,7 @@
       word(result.counts.added, "addition", "additions") + ", " +
       word(result.counts.removed, "removal", "removals") +
       (result.counts.uncertain ? ", " + word(result.counts.uncertain, "clause it cannot call", "clauses it cannot call") : "") +
-      ". Compared " + when + ".");
+      ". Compared " + when + "." + exampleSuffix());
 
     result.findings.forEach(function (f) {
       var li = node("li", "finding " + f.type);
@@ -243,14 +248,15 @@
 
   /* --------------------------------------------------------------- wire */
 
-  els.a.addEventListener("input", function () { refreshCount("a"); });
-  els.b.addEventListener("input", function () { refreshCount("b"); });
+  els.a.addEventListener("input", function () { exampleOn = false; refreshCount("a"); });
+  els.b.addEventListener("input", function () { exampleOn = false; refreshCount("b"); });
   els.compare.addEventListener("click", runCompare);
   els.exportMd.addEventListener("click", function () { doExport("md"); });
   els.exportJson.addEventListener("click", function () { doExport("json"); });
-  els.clearA.addEventListener("click", function () { els.a.value = ""; refreshCount("a"); });
-  els.clearB.addEventListener("click", function () { els.b.value = ""; refreshCount("b"); });
+  els.clearA.addEventListener("click", function () { exampleOn = false; els.a.value = ""; refreshCount("a"); });
+  els.clearB.addEventListener("click", function () { exampleOn = false; els.b.value = ""; refreshCount("b"); });
   els.example.addEventListener("click", function () {
+    exampleOn = true;
     els.a.value = EXAMPLE_A;
     els.b.value = EXAMPLE_B;
     refreshCount("a");

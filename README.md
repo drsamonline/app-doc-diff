@@ -3,7 +3,11 @@
 Compare two documents and see exactly what changed, **clause by clause**.
 
 - **Demo (the app itself):** https://drsamonline.github.io/app-doc-diff/play/index.html
-- **Landing page:** https://drsamonline.github.io/app-doc-diff/
+  — **not live yet.** The build credential cannot create a GitHub Pages site
+  (`403 Resource not accessible by integration`), and neither can the repository's own
+  workflow token. One manual step by the owner turns it on: *Settings → Pages → Source:
+  Deploy from a branch → `main` / `/docs`*. Nothing else is missing.
+- **Landing page (same host):** https://drsamonline.github.io/app-doc-diff/
 - **Plan row:** #1 of 37 in `drsamonline/forge` → `QUEUE/PLAN.json`
 - **Specs absorbed:** `app-doc-diff` (lead), `app-diff-bench`
 - **Licence:** PolyForm Noncommercial 1.0.0

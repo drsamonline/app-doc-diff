@@ -17,7 +17,8 @@ Compare two documents and see exactly what changed, **clause by clause**.
 | | |
 |---|---|
 | **Built** | Clause splitting (paragraph, list marker, sentence); marker-stripped comparison so a renumber is not a change; exact-match pass so a moved or reflowed clause is not a change; reword detection with a similarity score; additions and removals; a "cannot tell" band; export of the delta as Markdown or JSON; file and byte gates; PWA shell that works from `file://`. |
-| **Not built** | A packaged Windows EXE / Android APK release — `app-builder` is not reachable from the environment this was built in (see below). Reading `.docx`, `.pdf`, `.odt`, `.rtf`, `.html` — refused by type instead. |
+| **Release** | Windows EXE, Android APK and Linux binary, built from this source by `app-builder` in CI, attached to the rolling release: [app-latest](https://github.com/drsamonline/app-doc-diff/releases/tag/app-latest) |
+| **Not built** | Reading `.docx`, `.pdf`, `.odt`, `.rtf`, `.html` — refused by type instead. |
 | **Untested** | Not covered by any test: dragging a file in from the OS, reading a file through the file picker, the service worker and the install prompt (jsdom implements neither). Everything else — the engine, the page wiring, the export, the empty and refused cases — is asserted. |
 
 ## The mechanic
@@ -99,12 +100,6 @@ unreadable file through, and reporting a failed save as saved each turned the su
 restored, 92/92 + 22/22 pass.
 
 ## What is not built, and why
-
-**The packaged release.** The definition of done asks for a release with the EXE and APK that
-`app-builder` produces from the same source. `app-builder` was not reachable from the
-environment this was built in, so no release exists and none is claimed. The app is a web app:
-the same bytes run from `file://`, as an installed PWA, and — once `app-builder` runs over
-`docs/play/index.html` — as an APK. That packaging step is the next one.
 
 **Format support.** `.docx`, `.pdf`, `.odt` are the formats a contract usually arrives in, and
 none is read. Parsing them properly needs a vendored parser and its licence in `NOTICE`; a

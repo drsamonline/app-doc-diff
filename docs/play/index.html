@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doc Diff — what changed in the contract, clause by clause</title>
+<meta name="description" content="Compare two documents clause by clause, offline. A reflowed paragraph is not a change; a reworded clause is one finding.">
+<meta name="theme-color" content="#101418">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+  :root {
+    --bg: #f6f5f2; --panel: #ffffff; --ink: #14181d; --muted: #5d666f;
+    --line: #d9d6cf; --accent: #1f5f4f; --accent-ink: #ffffff;
+    --reworded: #8a5a00; --added: #1f5f4f; --removed: #a02a2a; --uncertain: #4b4b8a;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.5; font-size: 16px; }
+  header.top { border-bottom: 1px solid var(--line); background: var(--panel); padding: 14px 20px; display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap; }
+  header.top h1 { font-size: 18px; margin: 0; letter-spacing: -0.01em; }
+  header.top p { margin: 0; color: var(--muted); font-size: 13px; }
+  header.top a { margin-left: auto; color: var(--accent); font-size: 13px; text-decoration: none; border-bottom: 1px solid currentColor; }
+  main { max-width: 1180px; margin: 0 auto; padding: 20px; }
+  .panes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 820px) { .panes { grid-template-columns: 1fr; } }
+  .pane { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; display: flex; flex-direction: column; min-height: 280px; }
+  .pane-head { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  .pane-head strong { font-size: 14px; }
+  .pane-head .grow { flex: 1; }
+  .pane-head .count { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .pane textarea { flex: 1; border: 0; resize: vertical; padding: 12px; font-family: var(--mono); font-size: 13px; line-height: 1.6; background: transparent; color: inherit; min-height: 200px; }
+  .pane textarea:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .pane-foot { padding: 8px 12px; border-top: 1px solid var(--line); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .drop { border: 1px dashed var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12px; color: var(--muted); }
+  .drop.over { border-color: var(--accent); color: var(--accent); }
+  button { font: inherit; font-size: 13px; padding: 7px 12px; border-radius: 7px; border: 1px solid var(--line); background: #fff; color: var(--ink); cursor: pointer; }
+  button:hover { border-color: var(--muted); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  button.primary:disabled { opacity: .5; cursor: not-allowed; }
+  .bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 16px 0 4px; }
+  .bar .grow { flex: 1; }
+  .hint { color: var(--muted); font-size: 12px; }
+  .status { margin-top: 10px; font-size: 13px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); display: none; }
+  .status.show { display: block; }
+  .status.bad { border-color: #e3b7b7; background: #fdf3f3; color: #7d1f1f; }
+  .status.ok { border-color: #b7d8cd; background: #f2f9f6; color: #14503f; }
+  .summary { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 9px; padding: 8px 12px; min-width: 92px; }
+  .stat b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .stat span { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .findings { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .finding { background: var(--panel); border: 1px solid var(--line); border-left-width: 4px; border-radius: 9px; padding: 12px 14px; }
+  .finding.reworded { border-left-color: var(--reworded); }
+  .finding.added { border-left-color: var(--added); }
+  .finding.removed { border-left-color: var(--removed); }
+  .finding.uncertain { border-left-color: var(--uncertain); }
+  .finding .head { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); }
+  .chip { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; padding: 2px 7px; border-radius: 999px; color: #fff; }
+  .chip.reworded { background: var(--reworded); } .chip.added { background: var(--added); }
+  .chip.removed { background: var(--removed); } .chip.uncertain { background: var(--uncertain); }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+  @media (max-width: 700px) { .pair { grid-template-columns: 1fr; } }
+  .pair > div { font-family: var(--mono); font-size: 13px; line-height: 1.55; background: #fbfaf8; border: 1px solid var(--line); border-radius: 7px; padding: 9px 10px; white-space: pre-wrap; word-break: break-word; }
+  .pair .lbl { display: block; font-family: var(--sans); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .says { margin: 8px 0 0; font-size: 12px; color: var(--muted); font-style: italic; }
+  .empty { text-align: center; color: var(--muted); padding: 34px 16px; font-size: 14px; }
+  footer { max-width: 1180px; margin: 0 auto; padding: 24px 20px 40px; color: var(--muted); font-size: 12px; border-top: 1px solid var(--line); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Doc Diff</h1>
+  <p>What changed in the document, clause by clause. Offline — the documents never leave this device.</p>
+  <a href="../index.html">about</a>
+</header>
+
+<main>
+  <div class="panes">
+    <section class="pane" aria-labelledby="lblA">
+      <div class="pane-head">
+        <strong id="lblA">Document A</strong><span class="grow"></span>
+        <span class="count" id="countA">0 clauses</span>
+      </div>
+      <textarea id="textA" spellcheck="false" aria-label="Document A text"
+        placeholder="Paste the earlier version here, or drop a .txt / .md file on it."></textarea>
+      <div class="pane-foot">
+        <label class="drop" id="dropA" for="fileA">Drop or choose a file (.txt, .md)</label>
+        <input class="sr" type="file" id="fileA" accept=".txt,.text,.md,.markdown,.rst,text/plain,text/markdown">
+        <button type="button" id="clearA">Clear</button>
+      </div>
+    </section>
+
+    <section class="pane" aria-labelledby="lblB">
+      <div class="pane-head">
+        <strong id="lblB">Document B</strong><span class="grow"></span>
+        <span class="count" id="countB">0 clauses</span>
+      </div>
+      <textarea id="textB" spellcheck="false" aria-label="Document B text"
+        placeholder="Paste the later version here, or drop a .txt / .md file on it."></textarea>
+      <div class="pane-foot">
+        <label class="drop" id="dropB" for="fileB">Drop or choose a file (.txt, .md)</label>
+        <input class="sr" type="file" id="fileB" accept=".txt,.text,.md,.markdown,.rst,text/plain,text/markdown">
+        <button type="button" id="clearB">Clear</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="bar">
+    <button class="primary" type="button" id="compare">Compare clauses</button>
+    <button type="button" id="example">Load example</button>
+    <span class="grow"></span>
+    <span class="hint">Ctrl / Cmd + Enter compares</span>
+  </div>
+
+  <div class="status" id="status" role="status" aria-live="polite"></div>
+
+  <div class="summary" id="summary" hidden>
+    <div class="stat"><b id="sReworded">0</b><span>Reworded</span></div>
+    <div class="stat"><b id="sAdded">0</b><span>Added</span></div>
+    <div class="stat"><b id="sRemoved">0</b><span>Removed</span></div>
+    <div class="stat"><b id="sUncertain">0</b><span>Cannot tell</span></div>
+    <div class="stat"><b id="sUnchanged">0</b><span>Unchanged</span></div>
+    <div class="stat"><b id="sClauses">0 / 0</b><span>Clauses A / B</span></div>
+  </div>
+
+  <div class="bar" id="exportBar" hidden>
+    <button type="button" id="exportMd">Export delta (.md)</button>
+    <button type="button" id="exportJson">Export delta (.json)</button>
+    <span class="hint" id="exportNote"></span>
+  </div>
+
+  <ol class="findings" id="findings"></ol>
+  <div class="empty" id="empty">
+    Paste or drop two versions of the same document, then press <strong>Compare clauses</strong>.
+    <br>The comparison is by clause: a reflowed paragraph is not a change, a reworded clause is one finding.
+  </div>
+</main>
+
+<footer>
+  Doc Diff compares clause text in memory only. Nothing is stored, sent or logged.
+  <br>PolyForm Noncommercial 1.0.0 · (c) 2026 Dr Sohil Momin
+</footer>
+
+<script src="web-kit.js"></script>
+<script src="export-kit.js"></script>
+<script src="diff-core.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

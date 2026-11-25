@@ -1,0 +1,15 @@
+{
+  "name": "Doc Diff — clause by clause",
+  "short_name": "Doc Diff",
+  "description": "Compare two documents clause by clause, offline. A reflowed paragraph is not a change; a reworded clause is one finding.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f5f2",
+  "theme_color": "#101418",
+  "lang": "en-IN",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

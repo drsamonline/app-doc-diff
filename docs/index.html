@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doc Diff — compare two documents clause by clause, offline</title>
+<meta name="description" content="Doc Diff compares two documents clause by clause: a reflowed paragraph is not a change, a reworded clause is one finding. Offline, single file, no account.">
+<meta name="theme-color" content="#101418">
+<style>
+  :root { --bg:#f6f5f2; --panel:#fff; --ink:#14181d; --muted:#5d666f; --line:#d9d6cf; --accent:#1f5f4f; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 20px 64px; }
+  h1 { font-size: 34px; line-height:1.15; letter-spacing:-0.02em; margin:0 0 10px; }
+  .lede { font-size: 18px; color: var(--muted); margin: 0 0 26px; }
+  .cta { display:inline-block; background:var(--accent); color:#fff; text-decoration:none; font-weight:600; padding:12px 20px; border-radius:9px; }
+  .cta:hover { filter: brightness(1.08); }
+  .status { margin: 26px 0; padding: 14px 16px; border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:9px; background: var(--panel); font-size:14px; }
+  .status b { display:block; font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin-bottom:4px; }
+  h2 { font-size: 17px; margin: 30px 0 8px; }
+  ul { padding-left: 20px; }
+  li { margin: 4px 0; }
+  code { font-family: ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size: 13px; background:#eeede9; padding:1px 5px; border-radius:4px; }
+  table { border-collapse: collapse; width:100%; font-size:14px; margin-top:8px; }
+  th, td { text-align:left; border-bottom:1px solid var(--line); padding:7px 8px; vertical-align:top; }
+  th { color:var(--muted); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.06em; }
+  footer { margin-top:44px; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Doc Diff</h1>
+  <p class="lede">Compare two documents and see exactly what changed, clause by clause.
+  A reflowed paragraph is not a change. A reworded clause is one finding.</p>
+
+  <a class="cta" href="play/index.html">Open Doc Diff</a>
+
+  <div class="status">
+    <b>Status</b>
+    Built and working offline: clause comparison, reword detection, additions, removals,
+    "cannot tell" findings, and export of the delta as Markdown or JSON.
+    <br><b>Not built</b>: a packaged Windows EXE or Android APK release (see the README), and
+    reading .docx, .pdf or .odt files — those are refused by type rather than half-parsed.
+  </div>
+
+  <h2>What it does</h2>
+  <ul>
+    <li>Splits both documents into <strong>clauses</strong> — by paragraph, list marker and sentence — and compares clause to clause.</li>
+    <li>Ignores what is not a change in meaning: reflowed lines, renumbered clauses, a clause that moved.</li>
+    <li>Reports a reworded clause as <strong>one</strong> finding, with the before and after text and a similarity score.</li>
+    <li>Reports additions and removals separately, at the place they occur.</li>
+    <li>Says <strong>"cannot tell"</strong> when two clauses are close but not the same, instead of guessing.</li>
+    <li>Exports the delta — the findings only, not the two documents — as Markdown or JSON.</li>
+  </ul>
+
+  <h2>What it will not do</h2>
+  <ul>
+    <li>No word-level or character-level colouring. The question is what changed in meaning.</li>
+    <li>No server, no account, no telemetry, no network call at runtime. The two documents never leave the device.</li>
+    <li>No storage: nothing is kept between visits. If you want the result, export it.</li>
+    <li>No invented confidence: an empty document is reported as empty, not as "everything removed"; a document it cannot read is refused by type.</li>
+  </ul>
+
+  <h2>When things go wrong</h2>
+  <table>
+    <tr><th>Case</th><th>What happens</th></tr>
+    <tr><td>Bad input</td><td>The file is refused with its type, and nothing is compared.</td></tr>
+    <tr><td>No network</td><td>Nothing changes — the app never needed one.</td></tr>
+    <tr><td>Storage full or unavailable</td><td>The comparison still runs in memory; the export fails and says the file was not written.</td></tr>
+    <tr><td>Corrupt saved state</td><td>There is no saved state. A damaged or binary file is refused at open, with the reason.</td></tr>
+  </table>
+
+  <h2>How to run it</h2>
+  <ul>
+    <li><strong>Here</strong>: <a href="play/index.html">play/index.html</a>, or install it as an app from your browser's menu.</li>
+    <li><strong>Offline file</strong>: open <code>docs/play/index.html</code> straight from disk — no server, no build step.</li>
+    <li><strong>Tests</strong>: <code>node tests/self-tests.js</code> — every "must not" above is a named assertion in that file.</li>
+  </ul>
+
+  <footer>
+    PolyForm Noncommercial 1.0.0 · (c) 2026 Dr Sohil Momin ·
+    <a href="https://github.com/drsamonline/app-doc-diff">source</a>
+  </footer>
+</main>
+</body>
+</html>

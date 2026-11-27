@@ -11,6 +11,7 @@ Compare two documents and see exactly what changed, **clause by clause**.
 - **Plan row:** #1 of 37 in `drsamonline/forge` → `QUEUE/PLAN.json`
 - **Specs absorbed:** `app-doc-diff` (lead), `app-diff-bench`
 - **Licence:** PolyForm Noncommercial 1.0.0
+- **Sponsor:** [github.com/sponsors/drsamonline](https://github.com/sponsors/drsamonline) — free, offline, no account
 
 ## Status
 
